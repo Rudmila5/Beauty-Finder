@@ -1,34 +1,60 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const params = new URLSearchParams(window.location.search);
-  const searchTerm = params.get('search');
+document.addEventListener('DOMContentLoaded', () => {
+  const apiBaseURL = window.location.origin.includes('github.io') 
+    ? 'https://beautyfinder-production.up.railway.app'  
+    : 'http://localhost:4000';
 
-  if (!searchTerm) return;
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('search');
 
-  const resultsContainer = document.getElementById('results-container');
+  if (searchQuery && searchQuery.trim() !== '') {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.value = decodeURIComponent(searchQuery);
+    fetchSearchResults(searchQuery);
+  } else {
+    displayErrorMessage('No search query found. Please try searching for a product or ingredient.');
+  }
 
-  try {
-    const response = await fetch(`https://beautyfinder-production.up.railway.app/search?query=${encodeURIComponent(searchTerm)}`);
-    const data = await response.json();
+  async function fetchSearchResults(query) {
+    try {
+      const response = await fetch(`${apiBaseURL}/search?query=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const data = await response.json();
+      displayResults(data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      displayErrorMessage('Error fetching products. Please try again later.');
+    }
+  }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      resultsContainer.innerHTML = '<p>No results found.</p>';
+  function displayResults(data) {
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.innerHTML = '';
+    if (!data || data.length === 0) {
+      resultsContainer.innerHTML = '<p>No products found matching your search.</p>';
       return;
     }
 
-    resultsContainer.innerHTML = data.map(item => `
-      <div class="product-card" onclick="window.open('${item.product_url}', '_blank')">
+    data.forEach(product => {
+      const productDiv = document.createElement('div');
+      productDiv.classList.add('product-card');
+      productDiv.innerHTML = `
         <img class="product-image" 
-             src="${item.image_url || 'https://via.placeholder.com/150'}" 
-             alt="${item.product_name}" 
+             src="${product.image_url || 'https://via.placeholder.com/150'}" 
+             alt="${product.product_name}" 
              onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
-        <p class="brand">${item.brand_name}</p>
-        <p class="product-title">${item.product_name}</p>
-      </div>
-    `).join('');
+        <p class="brand">${product.brand_name}</p>
+        <p class="product-title">
+          <a href="${product.product_URL}" target="_blank">${product.product_name}</a>
+        </p>
+        <p class="category">${product.category_name}</p>
+      `;
+      resultsContainer.appendChild(productDiv);
+    });
+  }
 
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    resultsContainer.innerHTML = '<p>There was an error loading results.</p>';
+  function displayErrorMessage(message) {
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.innerHTML = `<p class="error-message">${message}</p>`;
   }
 });
 
