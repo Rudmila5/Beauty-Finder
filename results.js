@@ -3,18 +3,29 @@ document.addEventListener('DOMContentLoaded', () => {
     ? 'https://beautyfinder-production.up.railway.app'  
     : 'http://localhost:4000';
 
+  const searchInput = document.getElementById('search-input');
+  const resultsContainer = document.getElementById('results-container');
+  const loadingDiv = document.getElementById('loading');
+  const searchForm = document.getElementById('searchForm');
+
+ 
+  searchForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (query) fetchSearchResults(query);
+  });
+
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get('search');
-
   if (searchQuery && searchQuery.trim() !== '') {
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.value = decodeURIComponent(searchQuery);
+    searchInput.value = decodeURIComponent(searchQuery);
     fetchSearchResults(searchQuery);
-  } else {
-    displayErrorMessage('No search query found. Please try searching for a product or ingredient.');
   }
 
   async function fetchSearchResults(query) {
+    resultsContainer.innerHTML = '';
+    loadingDiv.style.display = 'block';
+
     try {
       const response = await fetch(`${apiBaseURL}/search?query=${encodeURIComponent(query)}`);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -23,39 +34,57 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error('Error fetching products:', error);
       displayErrorMessage('Error fetching products. Please try again later.');
+    } finally {
+      loadingDiv.style.display = 'none';
     }
   }
 
   function displayResults(data) {
-    const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = '';
     if (!data || data.length === 0) {
-      resultsContainer.innerHTML = '<p>No products found matching your search.</p>';
+      displayErrorMessage('No products found matching your search.');
       return;
     }
 
     data.forEach(product => {
-      const productDiv = document.createElement('div');
-      productDiv.classList.add('product-card');
-      productDiv.innerHTML = `
-        <img class="product-image" 
-             src="${product.image_url || 'https://via.placeholder.com/150'}" 
-             alt="${product.product_name}" 
-             onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
-        <p class="brand">${product.brand_name}</p>
-        <p class="product-title">
-          <a href="${product.product_URL}" target="_blank">${product.product_name}</a>
-        </p>
-        <p class="category">${product.category_name}</p>
-      `;
-      resultsContainer.appendChild(productDiv);
+   
+      const img = new Image();
+      img.src = product.image_url || 'https://via.placeholder.com/150';
+      img.alt = product.product_name;
+      img.classList.add('product-image');
+      img.onerror = () => {
+        img.src = 'https://via.placeholder.com/150';
+      };
+
+      img.onload = () => {
+        const productDiv = document.createElement('div');
+        productDiv.classList.add('product-card');
+
+        productDiv.appendChild(img);
+
+
+        const brand = document.createElement('p');
+        brand.classList.add('brand');
+        brand.textContent = product.brand_name;
+        productDiv.appendChild(brand);
+
+        const title = document.createElement('p');
+        title.classList.add('product-title');
+        title.innerHTML = `<a href="${product.product_URL}" target="_blank">${product.product_name}</a>`;
+        productDiv.appendChild(title);
+
+        const category = document.createElement('p');
+        category.classList.add('category');
+        category.textContent = product.category_name;
+        productDiv.appendChild(category);
+
+        resultsContainer.appendChild(productDiv);
+      };
     });
   }
 
   function displayErrorMessage(message) {
-    const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = `<p class="error-message">${message}</p>`;
   }
 });
-
 
