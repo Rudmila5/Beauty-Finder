@@ -15,17 +15,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-resultsContainer.innerHTML = data.map(item => `
-  <div class="product-card" onclick="window.open('${item.product_url}', '_blank')">
-    <img class="product-image" src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.product_name}">
-    <h3 class="product-title">${item.product_name}</h3>
-    <p class="brand">${item.brand_name}</p>
-  </div>
-`).join('');
+    resultsContainer.innerHTML = data.map(item => `
+      <div class="product-card" onclick="window.open('${item.product_url}', '_blank')">
+        <img class="product-image" 
+             src="${item.image_url || 'https://via.placeholder.com/150'}" 
+             alt="${item.product_name}" 
+             onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
+        <p class="brand">${item.brand_name}</p>
+        <p class="product-title">${item.product_name}</p>
+      </div>
+    `).join('');
 
   } catch (error) {
     console.error('Error fetching data:', error);
     resultsContainer.innerHTML = '<p>There was an error loading results.</p>';
-    console.log(data);
   }
 });
+
+
