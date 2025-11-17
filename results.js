@@ -20,12 +20,12 @@ resultsContainer.innerHTML = data.map(item => `
     <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.product_name}">
     <h3 class="product-title">${item.product_name}</h3>
     <p class="brand">${item.brand_name}</p>
-    <p class="category">${item.category_name}</p>
   </div>
 `).join('');
 
   } catch (error) {
     console.error('Error fetching data:', error);
     resultsContainer.innerHTML = '<p>There was an error loading results.</p>';
+    console.log(data);
   }
 });

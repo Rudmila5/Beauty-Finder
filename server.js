@@ -50,7 +50,7 @@ app.get('/search', (req, res) => {
     COALESCE(p.brand_name, 'No brand available') AS brand_name,
     COALESCE(c.category_name, 'No category available') AS category_name,
     i.ingredient_name, 
-    COALESCE(p.product_URL, 'No URL available') AS product_URL,
+    COALESCE(p.product_URL, 'No URL available') AS product_url,  -- lowercase here
     p.image_url
   FROM products_ingredients pi
   INNER JOIN products p ON pi.product_id = p.product_id
