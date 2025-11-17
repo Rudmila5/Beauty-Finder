@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 resultsContainer.innerHTML = data.map(item => `
   <div class="product-card" onclick="window.open('${item.product_url}', '_blank')">
-    <img src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.product_name}">
+    <img class="product-image" src="${item.image_url || 'https://via.placeholder.com/150'}" alt="${item.product_name}">
     <h3 class="product-title">${item.product_name}</h3>
     <p class="brand">${item.brand_name}</p>
   </div>
